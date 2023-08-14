@@ -1,6 +1,7 @@
 import express from "express";
 import helmet from "helmet";
 import data from "./blogs.json" assert { type: "json" };
+import validateBlogPost from "./validate.js";
 
 const app = express();
 const port = 3000;
@@ -22,14 +23,14 @@ app.get("/:id", (req, res) => {
   }
 });
 
-app.post("/", (req, res) => {
+app.post("/", validateBlogPost, (req, res) => {
   let id = data.length;
   req.body.id = id + 1;
   data.push(req.body);
   res.status(201).json(data);
 });
 
-app.put("/:id", (req, res) => {
+app.put("/:id", validateBlogPost, (req, res) => {
   let id = req.params.id;
   let index = data.findIndex((obj) => obj.id === +id);
   if (index !== -1) {
