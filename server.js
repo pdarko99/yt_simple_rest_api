@@ -1,7 +1,7 @@
 import express from "express";
 import helmet from "helmet";
 import data from "./blogs.json" assert { type: "json" };
-import validateBlogPost from "./validate.js";
+import { validateBlogPost, validateId } from "./validate.js";
 
 const app = express();
 const port = 3000;
@@ -13,14 +13,9 @@ app.get("/", (req, res) => {
   res.status(200).send(data);
 });
 
-app.get("/:id", (req, res) => {
-  let id = req.params.id;
-  let index = data.find((obj) => obj.id === +id);
-  if (index) {
-    res.status(200).json(index);
-  } else {
-    res.status(404).json({ message: "Not Found" });
-  }
+app.get("/:id", validateId, (req, res) => {
+  let index = req.index;
+  res.status(200).json(data[index]);
 });
 
 app.post("/", validateBlogPost, (req, res) => {
@@ -30,27 +25,17 @@ app.post("/", validateBlogPost, (req, res) => {
   res.status(201).json(data);
 });
 
-app.put("/:id", validateBlogPost, (req, res) => {
-  let id = req.params.id;
-  let index = data.findIndex((obj) => obj.id === +id);
-  if (index !== -1) {
-    req.body.id = data[index].id;
-    data[index] = req.body;
-    res.status(200).json(data);
-  } else {
-    res.status(404).json({ message: `Object with id: ${id} not Found` });
-  }
+app.put("/:id", validateId, validateBlogPost, (req, res) => {
+  let index = req.index;
+  req.body.id = data[index].id;
+  data[index] = req.body;
+  res.status(200).json(data);
 });
 
-app.delete("/:id", (req, res) => {
-  let id = req.params.id;
-  let index = data.findIndex((obj) => obj.id === +id);
-  if (index !== -1) {
-    data.splice(index, 1);
-    res.status(200).json({ message: `Object with id: ${id} has been deleted` });
-  } else {
-    res.status(404).json({ message: `Object with id: ${id} not Found` });
-  }
+app.delete("/:id", validateId, (req, res) => {
+  let index = req.index;
+  data.splice(index, 1);
+  res.status(200).json({ message: `Object has been deleted` });
 });
 
 app.use((err, req, res, next) => {
